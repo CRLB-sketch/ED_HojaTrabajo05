@@ -14,3 +14,8 @@ __status__ = "Students of Computer Science & BioInformatics"
     Simulación de un Sistema operativo con Simpy.
 """
 #####################################################################################################################
+
+import simpy
+
+def hello():
+    print("Hello Simpy by Functions")
