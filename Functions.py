@@ -16,6 +16,7 @@ __status__ = "Students of Computer Science & BioInformatics"
 #####################################################################################################################
 
 import simpy
+import random
 
 def hello():
     print("Hello Simpy by Functions")
