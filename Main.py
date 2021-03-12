@@ -14,84 +14,74 @@ __status__ = "Students of Computer Science & BioInformatics"
     Simulación de un Sistema operativo con Simpy.
 """
 #####################################################################################################################
+#Importaciones
+import random
+import simpy
+import statistics 
 
-from Functions import *
+#Variables solicitadas en documento
+RANDOM_SEED = 69 #Je
+intervalo = 10.0
+processTime = [] #Donde se guarda la cantidad de cada pro
+cantProc = 25
+rangeInstructions = [1, 10]
+rangeRam = [1,10]
+instruccionesPorProceso = 3
+totalTime = 0
 
-memoryAmount = random.randint(1, 10)
-instructions = random.randint(1, 10)
+def proc(env, numProcess, cpu, ram, waiting, tiempoLlegada):
+    global totalTime #Para acumular el tiempo utilizado
+    global processTime #Lista que guarda cuanto tarda cada proceso
+    yield env.timeout(tiempoLlegada)
+    start = env.now
+    end = 0
+    print('Proceso # %d ingreso al sistema en %s' % (numProcess, start))
+    instProcess = random.randint(*rangeInstructions) #Cantidad de instrucciones que el proceso va a realizar
+    ramProcess = random.randint(*rangeRam) #Cantidad de ram que el proceso necesita
+    with ram.get(ramProcess) as cola:
+        print('Proceso # %d necesita de espacio %s de ram' % (numProcess, ramProcess))
+        while instProcess > 0:
+            with cpu.request() as colaEspera:
+                yield colaEspera
+                print('El proceso # %d entra al CPU en %s' % (numProcess, env.now))
+                yield env.timeout(1) #El CPU ejecuta las instrucciones en 1 unidad de timepo
+                instProcess -= instruccionesPorProceso
+                if instProcess <=0:
+                    instProcess = 0
+                    end = env.now
+                    print('El proceso # %d sale del CPU en %s' % (numProcess, end))
+                else:
+                    option = random.randint(1,2)
+                    if(option == 1): #Para ver si pasa a waiting o a ready
+                        with waiting.request() as colaWaiting:
+                            yield colaWaiting
+                            yield env.timeout(1)
+                    #No es necesario el else ya que de por si se tiene que volver al
+                    #pasar al inicio, es el siguiente.
+    time = end - start
+    processTime.append(time)
+    totalTime = end #Cambio de tiempo total para que el ultimo proceso sea el guardado.
 
-
-# Programa que se ejecutará
-def program(env):
-    print("")
-
-# Sistema Operativo
-class SystemOperative(object):
-
-    # --> Constructor y Atributos
-    def __init__(self, env) -> None:
-        self.env = env
-        self.action = env.process(self.newProcess())
-        self.RAM = simpy.Container(env, init=100, capacity=100)
-        self.data = []
-        self.instructionsCount = 0
-
-    # --> Métodos
-    # Si hay memoria disponible puede pasar al estado "Ready"
-    # Si no se pasará haciendo cola
-    def newProcess(self):   
-        while True:
-            # print("Capacidad RAM: " + str(self.RAM.capacity))     
-            # Memoria al azar (del 1 al 10)
-            self.RAM.get(100)
-            yield env.timeout(self.instructionsCount)
-            # Empezar a hacer el proceso
-            print("Ejecutando proceso con " + str(env.now) + " de memoria")
-
-            # Para verificar si hay memoria disponible
-            if(self.RAM.level <= 0): # Lleno
-                print("Lleno Xd")
-                # Se estará esperando por memoria y permanece haciendo cola
-                getWaiting = env.process(self.waiting(env))
-            else: # Disponible
-                print("Disponible ;)")
-                getReady = env.process(self.ready(env))
+def entry_proc(env, cpu, ram, waiting):
+    for i in range(cantProc):
+        timeToStart = random.expovariate(1.0 / intervalo)
+        env.process(proc(env, i, cpu, ram, waiting, timeToStart))
         
-    # Esperar para que el CPU nos Atienda
-    def ready(self, env):
-        print("Instruccioens a realizar: " + str(env.now))  
-        self.instructionsCount += 1
-        yield env.timeout(self.instructionsCount)
+#Variables de cuerpo
+random.seed(RANDOM_SEED) #Semilla solicitada para que siempre se genere la misma secuencia
+env = simpy.Environment()
+ram = simpy.Container(env, init=100, capacity=100)
+cpu = simpy.Resource(env, capacity = 1)
+waiting = simpy.Resource(env, capacity = 1)
 
-    # El CPU atiende al proceso por un tiempo limitado, suficiente para realizar solamente 3 instrucciones
-    # (Se debe de actualizar el contador de instrucciones a realizar)
-    def running(self, env):
-        print("")
+entry_proc(env, cpu, ram, waiting)
+env.run()
 
-    # Para concluir con el proceso
-    def terminated(self, env):
-        print("")
+#Calculo de promedio y desviacion estandar
+average = totalTime/cantProc
+deviation = statistics.stdev(processTime)
 
-    # Para esperar, se generaran numero al azar entre 1 y 2
-    # 1- Estará en la cola de Waiting (Atras)
-    # 2- Para dejar esa cola y regresa a "ready" (Adelante )
-    def waiting(self, env):
-        ready = random.randint(1, 2)
-        if(ready == 1):
-            print("Waiting")
-            print("Colas: " + str(env.now))
-            self.instructionsCount += 1
-            yield env.timeout(self.instructionsCount)
-        else:
-            print("Ready")
-            print("Instruccioens a realizar: " + str(env.now))
-            self.instructionsCount += 1
-            yield env.timeout(self.instructionsCount)
-
-if __name__ == "__main__":
-    
-    env = simpy.Environment()
-    systemO = SystemOperative(env)
-    PROCESSES = 5 # Para realizar los procesos solicitados
-    env.run(until=PROCESSES)
-    
+#imprimir en pantalla resultados
+print ('\nTiempo total', totalTime)
+print('Promedio de tiempo por instruccion: ', average)
+print('Desviacion Estandar: ', deviation)
