@@ -4,7 +4,6 @@ __copyright__ = "Copyright 2021, Universidad del Valle de Guatemala"
 __credits__ = ["Algoritmos y Estructuras de Datos", "Creado: 4 de Marzo de 2021"]
 __license__ = "GPL"
 __version__ = "1.0.0"
-__email__ = ["lay201281@uvg.edu.gt", ""]
 __status__ = "Students of Computer Science & BioInformatics"
 
 """
