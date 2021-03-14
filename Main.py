@@ -13,16 +13,18 @@ __status__ = "Students of Computer Science & BioInformatics"
     Simulación de un Sistema operativo con Simpy.
 """
 #####################################################################################################################
+
 #Importaciones
 import random
 import simpy
 import statistics 
+import matplotlib.pyplot as plt
 
 #Variables solicitadas en documento
 RANDOM_SEED = 69 #Je
-intervalo = 10.0
+intervalo = 1.0
 processTime = [] #Donde se guarda la cantidad de cada pro
-cantProc = 25
+cantProc = 200
 rangeInstructions = [1, 10]
 rangeRam = [1,10]
 instruccionesPorProceso = 3
@@ -66,21 +68,38 @@ def entry_proc(env, cpu, ram, waiting):
         timeToStart = random.expovariate(1.0 / intervalo)
         env.process(proc(env, i, cpu, ram, waiting, timeToStart))
         
-#Variables de cuerpo
-random.seed(RANDOM_SEED) #Semilla solicitada para que siempre se genere la misma secuencia
-env = simpy.Environment()
-ram = simpy.Container(env, init=100, capacity=100)
-cpu = simpy.Resource(env, capacity = 1)
-waiting = simpy.Resource(env, capacity = 1)
+if __name__ == "__main__":
+        
+    #Variables de cuerpo
+    random.seed(RANDOM_SEED) #Semilla solicitada para que siempre se genere la misma secuencia
+    env = simpy.Environment()
+    ram = simpy.Container(env, init=100, capacity=100)
+    cpu = simpy.Resource(env, capacity = 2)
+    waiting = simpy.Resource(env, capacity = 1)
 
-entry_proc(env, cpu, ram, waiting)
-env.run()
+    entry_proc(env, cpu, ram, waiting)
+    env.run()
 
-#Calculo de promedio y desviacion estandar
-average = totalTime/cantProc
-deviation = statistics.stdev(processTime)
+    #Calculo de promedio y desviacion estandar
+    average = totalTime/cantProc
+    deviation = statistics.stdev(processTime)
 
-#imprimir en pantalla resultados
-print ('\nTiempo total', totalTime)
-print('Promedio de tiempo por instruccion: ', average)
-print('Desviacion Estandar: ', deviation)
+    print("\n#################################################")
+    print("Resultados: ")
+    print("#################################################\n")
+
+    #imprimir en pantalla resultados
+    print ('Tiempo total', totalTime)
+    print('Promedio de tiempo por instruccion: ', average)
+    print('Desviacion Estandar: ', deviation)
+
+    # Para la grafica
+    dProcesos= []
+    for pro in range(len(processTime)):
+        dProcesos.append("P" + str(pro+1))
+
+    plt.title("Grafica Resultados")
+    plt.xlabel("Procesos")
+    plt.ylabel("Tiempo Promedio")
+    plt.plot(dProcesos, processTime)
+    plt.show()
