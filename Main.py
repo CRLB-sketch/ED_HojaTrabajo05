@@ -11,6 +11,8 @@ __status__ = "Students of Computer Science & BioInformatics"
 
  -> Hoja de Trabajo #05:
     Simulación de un Sistema operativo con Simpy.
+
+    GIT: https://github.com/CRLB-sketch/ED_HojaTrabajo05.git
 """
 #####################################################################################################################
 
@@ -22,7 +24,7 @@ import matplotlib.pyplot as plt
 
 #Variables solicitadas en documento
 RANDOM_SEED = 69 #Je
-intervalo = 1.0
+intervalo = 5.0
 processTime = [] #Donde se guarda la cantidad de cada pro
 cantProc = 200
 rangeInstructions = [1, 10]
@@ -74,7 +76,7 @@ if __name__ == "__main__":
     random.seed(RANDOM_SEED) #Semilla solicitada para que siempre se genere la misma secuencia
     env = simpy.Environment()
     ram = simpy.Container(env, init=100, capacity=100)
-    cpu = simpy.Resource(env, capacity = 2)
+    cpu = simpy.Resource(env, capacity = 1)
     waiting = simpy.Resource(env, capacity = 1)
 
     entry_proc(env, cpu, ram, waiting)
